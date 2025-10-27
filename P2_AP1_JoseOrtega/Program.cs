@@ -1,10 +1,16 @@
+using Microsoft.EntityFrameworkCore;
 using P2_AP1_JoseOrtega.Components;
+using P2_AP1_JoseOrtega.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContextFactory<Contexto>(options => options.UseSqlite(ConStr));
+builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
 
