@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using P2_AP1_JoseOrtega.Components;
 using P2_AP1_JoseOrtega.DAL;
+using P2_AP1_JoseOrtega.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddRazorComponents()
 var ConStr = builder.Configuration.GetConnectionString("ConStr");
 builder.Services.AddDbContextFactory<Contexto>(options => options.UseSqlite(ConStr));
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddScoped<ModeloService>();
 
 var app = builder.Build();
 

@@ -6,5 +6,8 @@ namespace P2_AP1_JoseOrtega.Models
     {
         [Key]
         public int ModeloId { get; set; }
+
+        [Required]
+        public DateTime Fecha { get; set;} = DateTime.Now;
     }
 }
