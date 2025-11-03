@@ -1,4 +1,5 @@
-﻿@page "/Modelo"
+﻿
+@page "/Modelo"
 
 @inject ModeloService modeloService
 @inject NavigationManager NavigationManager
@@ -61,12 +62,10 @@
                         @foreach (var modelo in ListaModelos)
                         {
                             <tr>
-                                <td>@modelo.ModeloId</td>
-                                <td>@modelo.Fecha.ToString("dd/MM/yyyy")</td>
 
 
                                 <td>
-                                    <a href="/huacales/Edit/@modelo.ModeloId" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                                    <a href="/huacales/Edit/" class="btn btn-outline-primary bi bi-pencil-square"></a>
                                 </td>
                             </tr>
                         }
@@ -88,7 +87,7 @@
 <h3>ModeloIndexrazor</h3>
 
 @code {
-    private List<Modelo> ListaModelos = new List<Modelo>();
+    private List<Pedidos> ListaModelos = new List<Pedidos>();
     private DateTime FechaIncio;
     private DateTime FechaFin;
     public string Filtro { get; set; } = string.Empty;
@@ -96,13 +95,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ListaModelos = await modeloService.Listar(e => e.ModeloId > 0);
     }
 
     private async Task Restablecer()
     {
-        ListaModelos = await modeloService.Listar(e => e.ModeloId > 0);
         Filtro = string.Empty;
         ValorFiltro = string.Empty;
     }
-}
+} 

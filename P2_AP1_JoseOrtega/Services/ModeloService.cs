@@ -8,10 +8,10 @@ namespace P2_AP1_JoseOrtega.Services
 {
     public class ModeloService(IDbContextFactory<Contexto> DbFactory)
     {
-        public async Task<List<Modelo>> Listar(Expression<Func<Modelo, bool>> criterio)
+        public async Task<List<Pedidos>> Listar(Expression<Func<Pedidos, bool>> criterio)
         {
             await using var contexto = await DbFactory.CreateDbContextAsync();
-            return await contexto.modelos
+            return await contexto.pedidos
                 .Where(criterio)
                 .AsNoTracking()
                 .ToListAsync();
