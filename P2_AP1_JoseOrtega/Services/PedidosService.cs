@@ -31,6 +31,12 @@ namespace P2_AP1_JoseOrtega.Services
         private async Task<bool> Insertar(Pedidos pedidos)
         {
             await using var contexto = await DbFactory.CreateDbContextAsync();
+
+            foreach (var detalle in pedidos.pedidosDetalles)
+            {
+                contexto.Entry(detalle.componentes).State = EntityState.Unchanged;
+            }
+
             contexto.pedidos.Add(pedidos);
             await AfectarExistencia(pedidos.pedidosDetalles.ToArray(), TipoOperacion.Resta);
             return await contexto.SaveChangesAsync() > 0;
@@ -48,12 +54,17 @@ namespace P2_AP1_JoseOrtega.Services
 
             await AfectarExistencia(original.pedidosDetalles.ToArray(), TipoOperacion.Suma);
 
-            contexto.pedidos.RemoveRange((Pedidos)original.pedidosDetalles);
+            contexto.Set<PedidosDetalle>().RemoveRange(original.pedidosDetalles);
+            await contexto.SaveChangesAsync();
+
+            foreach (var detalle in pedidos.pedidosDetalles)
+            {
+                detalle.DetalleId = 0;
+                contexto.Entry(detalle.componentes).State = EntityState.Unchanged;
+            }
 
             contexto.Update(pedidos);
-
             await AfectarExistencia(pedidos.pedidosDetalles.ToArray(), TipoOperacion.Resta);
-
             return await contexto.SaveChangesAsync() > 0;
         }
 
@@ -72,7 +83,10 @@ namespace P2_AP1_JoseOrtega.Services
         public async Task<Pedidos?> Buscar(int pedidoid)
         {
             await using var contexto = await DbFactory.CreateDbContextAsync();
-            return await contexto.pedidos.Include(e => e.pedidosDetalles).FirstOrDefaultAsync(p => p.PedidoId == pedidoid);
+            return await contexto.pedidos
+                .Include(e => e.pedidosDetalles)
+                .ThenInclude(d => d.componentes)
+                .FirstOrDefaultAsync(p => p.PedidoId == pedidoid);
         }
 
         public async Task<bool> Eliminar(int pedidoid)
@@ -80,8 +94,10 @@ namespace P2_AP1_JoseOrtega.Services
             await using var contexto = await DbFactory.CreateDbContextAsync();
             var pedido = await Buscar(pedidoid);
 
+            if (pedido == null) return false;
+
             await AfectarExistencia(pedido.pedidosDetalles.ToArray(), TipoOperacion.Suma);
-            contexto.pedidos.RemoveRange((Pedidos)pedido.pedidosDetalles);
+            contexto.Set<PedidosDetalle>().RemoveRange(pedido.pedidosDetalles);
             contexto.pedidos.Remove(pedido);
             return await contexto.SaveChangesAsync() > 0;
         }
@@ -91,6 +107,7 @@ namespace P2_AP1_JoseOrtega.Services
             await using var contexto = await DbFactory.CreateDbContextAsync();
             return await contexto.pedidos.
                 Include(p => p.pedidosDetalles)
+                .ThenInclude(d => d.componentes)
                 .Where(criterio)
                 .AsNoTracking()
                 .ToListAsync();
