@@ -11,7 +11,7 @@ using P2_AP1_JoseOrtega.DAL;
 namespace P2_AP1_JoseOrtega.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20251103224044_Inicial")]
+    [Migration("20251103230538_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
@@ -102,9 +102,6 @@ namespace P2_AP1_JoseOrtega.Migrations
 
                     b.Property<decimal>("Precio")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("DetalleId");
 

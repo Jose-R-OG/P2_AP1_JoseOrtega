@@ -100,9 +100,6 @@ namespace P2_AP1_JoseOrtega.Migrations
                     b.Property<decimal>("Precio")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("DetalleId");
 
                     b.HasIndex("ComponenteId");

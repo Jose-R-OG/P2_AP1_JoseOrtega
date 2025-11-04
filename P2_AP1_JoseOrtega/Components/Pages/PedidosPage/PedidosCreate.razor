@@ -1,0 +1,159 @@
+﻿@page "/Pedidos/Opciones/{PedidoId:int}"
+
+@inject PedidosService pedidosService
+@inject ComponenteService componenteService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Crear</PageTitle>
+<div class="container">
+	<div class="card shadow-lg">
+		<div class="card-header text-center">
+			<h5 class="card-title">Pedidos</h5>
+		</div>
+
+		<div class="card-body">
+			<div class="mb-3">
+				<label class="form-label">Pedido Id</label>
+				<InputNumber class="form-control" @bind-Value="pedido.PedidoId" readonly></InputNumber>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Fecha</label>
+				<input type="date" class="form-control" @bind="pedido.Fecha" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Cliente</label>
+				<input class="form-control" @bind="pedido.ClienteNombre" />
+			</div>
+
+			<div class="border border-success p-3 m-3">
+				<h3>Detalle del pedido</h3>
+
+				<hr class="py-1" />
+				<div class="col-auto input-group align-items-center">
+					<label class="col-form-label input-group-text">Componente</label>
+
+					<InputSelect class="form-control form-select" @bind-Value="Detalle.ComponenteId">
+						<option disabled value="0">Componente:</option>
+						@foreach (var componente in ListaComponentes)
+						{
+							<option value="@componente.ComponenteId">@componente.Descripcion (Existencia: @componente.Existencia)</option>
+						}
+					</InputSelect>
+
+					<label class="col-form-label input-group-text">Precio</label>
+					<input type="number" class="form-control" @bind="Detalle.Precio" min="0" />
+
+					<label class="col-form-label input-group-text">Cantidad</label>
+					<InputNumber class="form-control" id="quantity-input" @bind-Value="Detalle.Cantidad" />
+
+					<button type="button" class="btn btn-outline-success" @onclick="AgregarDetalle"><span class="bi bi-plus" /> Agregar</button>
+				</div>
+
+				<hr class="py-1" />
+
+				<table class="table table-light table-bordered table-hover mt-2">
+					<thead>
+						<tr class="text-center">
+							<th>Componente Id</th>
+							<th>Descripcion</th>
+							<th>Precio</th>
+							<th>Cantidad</th>
+							<th>Importe</th>
+							<th>Opciones</th>
+						</tr>
+					</thead>
+
+					<tbody class="text-center">
+						@foreach (var detalle in pedido.pedidosDetalles)
+						{
+							<tr>
+								<td>@detalle.ComponenteId</td>
+								<td>@detalle.componentes.Descripcion</td>
+								<td>@detalle.Precio</td>
+								<td>@detalle.Cantidad</td>
+								<td>@(detalle.Precio* detalle.Cantidad)</td>
+
+								<td></td>
+								<td>
+									<button type="button" class="btn btn-outline-danger" @onclick="() => QuitarDetalle(detalle)"><span class="bi bi-trash" /></button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="card-footer text-center">
+
+			<div class="btn-group">
+				@if (PedidoId == 0)
+				{
+					<button type="button" class="btn btn-outline-success bi bi-check-circle" @onclick="Guardar"> Guardar</button>
+				}
+				else
+				{
+					<button type="button" class="btn btn-outline-primary bi bi-check-circle" @onclick="Guardar"> Modificar</button>
+				}
+
+
+				<a href="/Pedidos" class="btn btn-outline-secondary bi bi-arrow-bar-left"> Volver</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public int PedidoId { get; set; }
+	public Pedidos pedido { get; set; } = new Pedidos();
+	public PedidosDetalle Detalle = new();
+	public List<Componente> ListaComponentes { get; set; } = [];
+	public bool creado { get; set; } = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		ListaComponentes = await componenteService.ListarComponenetes();
+
+		if (PedidoId > 0)
+		{
+			pedido = await pedidosService.Buscar(PedidoId);
+		}
+	}
+
+	private void AgregarDetalle()
+	{
+		var componenteSeleccionado = ListaComponentes.FirstOrDefault(c => c.ComponenteId == Detalle.ComponenteId);
+
+		if (componenteSeleccionado == null || Detalle.ComponenteId == 0)
+		{
+			return;
+		}
+
+		Detalle.componentes = componenteSeleccionado;
+
+		pedido.pedidosDetalles.Add(Detalle);
+		pedido.Total = pedido.pedidosDetalles.Sum(d => d.Cantidad * d.Precio);
+		Detalle = new PedidosDetalle();
+	}
+
+	public void QuitarDetalle(PedidosDetalle detalle)
+	{
+		pedido.pedidosDetalles.Remove(detalle);
+		pedido.Total = pedido.pedidosDetalles.Sum(d => d.Cantidad * d.Precio);
+	}
+
+	public async Task Guardar()
+	{
+		creado = await pedidosService.Guardar(pedido);
+		if (creado)
+		{
+			navigationManager.NavigateTo("/Pedidos");
+		}
+	}
+
+}
